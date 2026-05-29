@@ -1,5 +1,5 @@
 /**
- * 한국 조직문화 인식 조사 - 서버
+ * 국가 간 조직문화 인식 조사 - 서버
  *
  * 엔드포인트
  *   GET  /              설문 페이지 (참가자 접속용 — QR 링크 대상)
@@ -167,7 +167,7 @@ app.get('/qr', (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   const lan = getLanAddresses();
-  console.log(`\n  📋  한국 조직문화 인식 조사  ─  서버 시작됨`);
+  console.log(`\n  📋  국가 간 조직문화 인식 조사  ─  서버 시작됨`);
   console.log(`  ════════════════════════════════════════════════`);
   console.log(`\n  [이 PC에서 보기]`);
   console.log(`  설문        http://localhost:${PORT}/`);

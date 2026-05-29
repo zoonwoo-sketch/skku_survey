@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>실시간 집계 · 한국 조직문화 인식 조사</title>
+<title>실시간 집계 · 국가 간 조직문화 인식 조사</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -485,8 +485,8 @@
           <span>·</span>
           <span id="connStatus">실시간 집계</span>
         </div>
-        <h1 class="title">한국 조직문화 인식 조사</h1>
-        <p class="subtitle">Korean Organizational Culture · Real-time Aggregate</p>
+        <h1 class="title">국가 간 조직문화 인식 조사</h1>
+        <p class="subtitle">Cross-National Org Culture · Real-time Aggregate</p>
       </div>
       <div class="h-right">
         <div class="count-label">응답 수</div>
@@ -502,19 +502,19 @@
         <div class="panel-label">
           <span class="pl-num">/01</span>
           <span class="pl-name">카테고리별 인식 점수</span>
-          <span class="pl-hint">7 CATEGORIES · 1.0 — 5.0</span>
+          <span class="pl-hint">5 CATEGORIES · 1.0 — 5.0</span>
         </div>
         <div class="cats" id="catsList"></div>
       </section>
 
-      <!-- Right: Pref + Spotlight -->
+      <!-- Right: 해석 가이드 + Spotlight -->
       <section style="display: flex; flex-direction: column;">
         <div class="panel-label">
           <span class="pl-num">/02</span>
-          <span class="pl-name">가장 대표적이라고 본 특징</span>
-          <span class="pl-hint">SELECT ONE</span>
+          <span class="pl-name">해석 가이드</span>
+          <span class="pl-hint">점수가 높을수록 →</span>
         </div>
-        <div class="pref-list" id="prefList"></div>
+        <div class="guide-list" id="guideList"></div>
 
         <div class="spotlight" id="spotlight" style="display: none;">
           <div class="sp-label">가장 강하게 인식된 영역</div>
@@ -557,15 +557,12 @@
 <script>
   // ========== CATEGORIES ==========
   const CATEGORIES = {
-    A: { name: '위계성',                   items: [1,2,3], desc: '직급·승인 체계 등 위계적 의사결정이 강하게 작동한다고 인식.' },
-    B: { name: '관계주의',                 items: [4,5],   desc: '비공식 네트워크와 인간관계가 업무에 미치는 영향이 크다고 인식.' },
-    C: { name: '눈치 / 조화 중심성',       items: [6,7],   desc: '분위기와 집단 조화를 개인 의견보다 우선시한다고 인식.' },
-    D: { name: '실행력 / 몰입',            items: [8,9,10],desc: '빠른 실행과 강한 책임감·몰입을 한국 조직의 강점으로 인식.' },
-    E: { name: '연공 / 성실성 규범',       items: [11,12], desc: '연차·근속·바쁜 모습을 인정 기준으로 받아들이는 정도.' },
-    F: { name: '수평문화의 형식-실질 괴리',items: [13,14], desc: '겉으로는 수평적이지만 실제 결정·평가는 위계적이라고 인식.' },
-    G: { name: '변화 저항성',              items: [15],    desc: '새로운 제도가 결국 익숙한 방식으로 회귀한다고 인식.' }
+    A: { name: '위계성', items: [1,2,3], desc: '위계성과 권위 중심성이 강한 문화로 해석됩니다. (직급·상사·보고 체계)' },
+    B: { name: '갈등 회피 / 조화 지향', items: [4,5,10,12], desc: '직접 충돌보다 조화와 분위기를 우선하는 문화로 해석됩니다.' },
+    C: { name: '수평성 / 전문성 수용', items: [6,11], desc: '수평성·참여성, 역할·전문성 중심 수용이 강한 문화로 해석됩니다.' },
+    D: { name: '관계주의', items: [7,8,9], desc: '관계주의와 비공식 네트워크의 영향력이 강한 문화로 해석됩니다.' },
+    E: { name: '헌신 / 일 중심성', items: [13,14,15], desc: '장시간 헌신, 조직 우선, 집단 몰입 규범이 강한 문화로 해석됩니다.' }
   };
-  const PREF_OPTIONS = ['빠른 실행력','위계적 질서','관계 중심 협업','눈치와 분위기','강한 몰입과 책임감','수평을 말하지만 실제는 위계적임'];
 
   // ========== SCALING ==========
   function scaleStage() {
@@ -598,9 +595,6 @@
     const N = responses.length;
     const sumQ = Array.from({ length: 16 }, () => 0);
     const cntQ = Array.from({ length: 16 }, () => 0);
-    const prefCount = {};
-    PREF_OPTIONS.forEach(o => prefCount[o] = 0);
-
     let totalSum = 0, totalCount = 0;
     responses.forEach(r => {
       for (let i = 1; i <= 15; i++) {
@@ -612,7 +606,6 @@
           totalCount += 1;
         }
       }
-      if (r.pref && prefCount[r.pref] !== undefined) prefCount[r.pref]++;
     });
 
     const catScores = {};
@@ -625,8 +618,7 @@
     return {
       N,
       overall: totalCount > 0 ? totalSum / totalCount : 0,
-      catScores,
-      prefCount
+      catScores
     };
   }
 
@@ -686,35 +678,22 @@
       });
     });
 
-    // Pref distribution
-    const prefList = document.getElementById('prefList');
-    const totalPref = Object.values(agg.prefCount).reduce((a,b)=>a+b, 0);
-    const sortedPref = Object.entries(agg.prefCount).sort((a,b) => b[1] - a[1]);
-    const maxPref = Math.max(1, sortedPref[0][1]);
-    prefList.innerHTML = '';
-    sortedPref.forEach(([opt, n], idx) => {
-      const pct = totalPref > 0 ? Math.round((n / totalPref) * 100) : 0;
-      const fillPct = maxPref > 0 ? (n / maxPref) * 100 : 0;
+    // Interpretation guide (fixed A–E order, highlight top)
+    const guideList = document.getElementById('guideList');
+    const topGuideKey = sortedCats[0][0];
+    guideList.innerHTML = '';
+    Object.entries(CATEGORIES).forEach(([key, def]) => {
+      const score = agg.catScores[key] || 0;
       const row = document.createElement('div');
-      row.className = 'pref-row' + (idx === 0 && n > 0 ? ' top' : '');
+      row.className = 'guide-row' + (key === topGuideKey ? ' top' : '');
       row.innerHTML = `
-        <span class="pref-text">${opt}</span>
-        <span class="pref-count">${n}<span class="pct">${pct}%</span></span>
+        <span class="g-letter">${key}</span>
+        <div class="g-main">
+          <div class="g-name">${def.name}<span class="g-score">${score.toFixed(2)}</span></div>
+          <div class="g-desc">${def.desc}</div>
+        </div>
       `;
-      prefList.appendChild(row);
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          row.style.setProperty('--fill', fillPct + '%');
-          row.querySelector('.pref-text').parentElement.style.setProperty('background-size', '100%');
-          // Use ::before manipulation via CSS variable trick
-          const before = document.createElement('style');
-          // Simpler: directly set width via pseudo
-        }, 80);
-      });
-      // Direct: set the ::before width via inline style on a custom attribute
-      const before = row;
-      // Use CSS variable
-      row.style.setProperty('--pct', fillPct + '%');
+      guideList.appendChild(row);
     });
 
     // Spotlight (top category)
@@ -725,9 +704,18 @@
     document.getElementById('spDesc').textContent = CATEGORIES[topKey].desc;
   }
 
-  // Inject CSS to use --pct for ::before width
+  // Inject guide styles
   const styleTag = document.createElement('style');
-  styleTag.textContent = `.pref-row::before { width: var(--pct, 0%); }`;
+  styleTag.textContent = `
+    .guide-list { display:flex; flex-direction:column; gap:10px; }
+    .guide-row { display:grid; grid-template-columns:30px 1fr; gap:14px; align-items:start; padding:13px 16px; background:var(--paper); border:1px solid var(--line); border-radius:5px; transition:all .3s ease; }
+    .guide-row.top { border-color:var(--ink); background:#fff; }
+    .g-letter { font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700; color:#fff; background:var(--ink); width:26px; height:26px; border-radius:4px; display:flex; align-items:center; justify-content:center; }
+    .g-main { min-width:0; }
+    .g-name { font-size:15px; font-weight:600; letter-spacing:-0.015em; display:flex; justify-content:space-between; gap:10px; align-items:baseline; margin-bottom:4px; }
+    .g-score { font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:500; letter-spacing:-0.01em; }
+    .g-desc { font-size:12px; color:var(--ink-mute); line-height:1.45; }
+  `;
   document.head.appendChild(styleTag);
 
   // ========== DATA ==========

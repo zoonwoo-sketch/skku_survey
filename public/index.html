@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#f6f5f1" />
-<title>한국 조직문화 인식 조사</title>
+<title>국가 간 조직문화 인식 조사</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -391,13 +391,13 @@
         <span>SURVEY · 2026</span>
         <span id="liveCount">— 응답</span>
       </div>
-      <h1 class="doc-title">한국 조직문화 인식 조사</h1>
-      <p class="doc-subtitle">Korean Org Culture Survey</p>
+      <h1 class="doc-title">국가 간 조직문화 인식 조사</h1>
+      <p class="doc-subtitle">Cross-National Org Culture Survey</p>
     </header>
 
     <section class="intro">
       <h3>설문 안내문</h3>
-      <p>다음 문항은 특정 회사 하나가 아니라, 내가 일반적으로 인식하는 <strong>한국 조직문화 전반의 특징</strong>에 대한 질문입니다.</p>
+      <p>다음 문항은 특정 회사 하나가 아니라, 내가 일반적으로 인식하는 <strong>우리 사회의 조직문화 전반의 특징</strong>에 대한 질문입니다.</p>
       <p>정답은 없으며, 본인의 경험과 인식을 기준으로 응답해 주세요.</p>
     </section>
 
@@ -434,102 +434,51 @@
 
 <script>
   // ========== DATA ==========
-  const SECTIONS = [
-    { num:'01', title:'위계와 발언 구조', cat:'A', items:[
-      '공식적으로는 자유롭게 말하라고 하지만, 실제로는 직급이 높은 사람의 의견이 더 크게 작동하는 편이다.',
-      '회의에서 다른 의견이 있어도 분위기를 고려해 직접적으로 반대하기 어려운 편이다.',
-      '의사결정 과정에서 보고와 승인 체계가 중요한 편이다.'
-    ]},
-    { num:'02', title:'관계와 비공식 네트워크', cat:'B', items:[
-      '공식 시스템보다 인간관계나 비공식 네트워크가 실제 업무에 더 큰 영향을 미치는 경우가 있다.',
-      '동료와의 관계를 잘 유지하는 것이 협업 성과에 중요한 요소로 작용하는 편이다.'
-    ]},
-    { num:'03', title:'눈치와 집단 조화', cat:'C', items:[
-      '규정에 없는 일이라도 분위기상 알아서 맞춰야 하는 경우가 많은 편이다.',
-      '개인의 의견보다 팀의 조화와 분위기를 우선하는 경향이 있다.'
-    ]},
-    { num:'04', title:'실행력과 몰입', cat:'D', items:[
-      '방향이 정해지면 빠르게 움직이고 실행하는 힘이 강한 편이다.',
-      '위기 상황이 오면 구성원들이 빠르게 결집해 몰입하는 편이다.',
-      '맡은 일에 대해 강한 책임감을 느끼고 끝까지 해내려는 태도가 강한 편이다.'
-    ]},
-    { num:'05', title:'성실함과 보상 기준', cat:'E', items:[
-      '오래 근무한 사람이나 연차가 높은 사람이 더 인정받는 경향이 있다.',
-      '늦게까지 남아 있거나 바쁘게 보이는 것이 성실함처럼 받아들여지는 경우가 있다.'
-    ]},
-    { num:'06', title:'수평문화의 형식과 실제', cat:'FG', items:[
-      '수평적 문화를 표방하더라도 실제 의사결정은 여전히 위계적으로 이루어지는 경우가 많다.',
-      '호칭이나 형식은 수평적으로 바뀌어도, 평가와 보상 방식은 크게 달라지지 않는 경우가 많다.',
-      '새로운 문화나 제도를 도입해도 결국 익숙한 방식으로 다시 돌아가려는 힘이 강한 편이다.'
-    ]}
+  const QUESTIONS = [
+    '직급이나 연차가 높은 사람의 의견은 회의에서 더 큰 영향력을 가지는 편이다.',
+    '상사의 결정에 공개적으로 이견을 제기하는 것은 부담스럽게 느껴지는 편이다.',
+    '의사결정 과정에서 보고와 승인 체계가 중요한 편이다.',
+    '회의나 협업 상황에서 직접적인 반대보다 완곡한 표현이 더 바람직하다고 여겨지는 편이다.',
+    '갈등이 생겨도 공개적으로 드러내기보다 관계를 해치지 않는 방식으로 조정하려는 경향이 있다.',
+    '직급보다 역할과 전문성을 기준으로 의견이 받아들여지는 편이다.',
+    '일을 잘하기 위해서는 공식 절차만큼이나 인간관계와 신뢰 형성이 중요하다고 여겨진다.',
+    '업무 외적인 교류(식사, 모임, 사적 대화 등)가 협업과 신뢰 형성에 중요한 역할을 한다.',
+    '공식 제도보다 비공식 네트워크가 실제 의사결정에 더 큰 영향을 미치는 경우가 있다.',
+    '개인의 의견보다 팀의 조화와 분위기를 우선하는 경향이 있다.',
+    '조직의 중요한 결정은 소수의 리더보다 구성원들의 의견을 넓게 반영하는 편이다.',
+    '규정에 없는 일이라도 분위기상 알아서 맞춰야 하는 경우가 많은 편이다.',
+    '오래 근무하거나 바쁘게 일하는 모습이 더 인정받는 경향이 있다.',
+    '조직에서는 개인의 워라밸보다 팀이나 회사의 목표 달성이 더 우선시되는 경우가 많다.',
+    '위기 상황에서는 개인보다 조직 전체를 위해 더 많이 헌신해야 한다는 기대가 강한 편이다.'
   ];
-  const PREF_OPTIONS = ['빠른 실행력','위계적 질서','관계 중심 협업','눈치와 분위기','강한 몰입과 책임감','수평을 말하지만 실제는 위계적임'];
 
   // ========== BUILD ==========
   const form = document.getElementById('surveyForm');
-  let qIdx = 0;
-  SECTIONS.forEach(section => {
-    const sec = document.createElement('section');
-    sec.className = 'section';
-    const tag = section.cat === 'FG' ? 'CATEGORY · F / G' : `CATEGORY · ${section.cat}`;
-    sec.innerHTML = `
-      <div class="section-header">
-        <span class="section-num">${section.num}</span>
-        <span class="section-title">${section.title}</span>
-        <span class="section-tag">${tag}</span>
-      </div>
-    `;
-    section.items.forEach(text => {
-      qIdx++;
-      const qDiv = document.createElement('div');
-      qDiv.className = 'q unanswered';
-      qDiv.dataset.qnum = qIdx;
-      qDiv.innerHTML = `
-        <div class="q-text">
-          <span class="q-num">${String(qIdx).padStart(2,'0')}</span>
-          <span>${text}</span>
-        </div>
-        <div class="likert">
-          ${[1,2,3,4,5].map(v => `
-            <label>
-              <input type="radio" name="q${qIdx}" value="${v}" />
-              <span class="v">${v}</span>
-              <span class="t">${['전혀<br>그렇지 않다','그렇지<br>않은 편','보통','그런 편','매우<br>그렇다'][v-1]}</span>
-            </label>
-          `).join('')}
-        </div>
-      `;
-      sec.appendChild(qDiv);
-    });
-    form.appendChild(sec);
-  });
-
-  // Pref
-  const choiceSec = document.createElement('section');
-  choiceSec.className = 'section';
-  choiceSec.innerHTML = `
-    <div class="section-header">
-      <span class="section-num">+</span>
-      <span class="section-title">대표적 조직문화 특징</span>
-      <span class="section-tag">OPTIONAL</span>
-    </div>
-    <div class="q">
+  const sec = document.createElement('section');
+  sec.className = 'section';
+  QUESTIONS.forEach((text, i) => {
+    const qIdx = i + 1;
+    const qDiv = document.createElement('div');
+    qDiv.className = 'q unanswered';
+    qDiv.dataset.qnum = qIdx;
+    qDiv.innerHTML = `
       <div class="q-text">
-        <span class="q-num">★</span>
-        <span>가장 대표적인 조직문화 특징은 무엇이라고 생각하십니까?</span>
+        <span class="q-num">${String(qIdx).padStart(2,'0')}</span>
+        <span>${text}</span>
       </div>
-      <div class="choice-group">
-        ${PREF_OPTIONS.map(opt => `
+      <div class="likert">
+        ${[1,2,3,4,5].map(v => `
           <label>
-            <input type="radio" name="pref" value="${opt}" />
-            <span>${opt}</span>
+            <input type="radio" name="q${qIdx}" value="${v}" />
+            <span class="v">${v}</span>
+            <span class="t">${['전혀<br>그렇지 않다','그렇지<br>않은 편','보통','그런 편','매우<br>그렇다'][v-1]}</span>
           </label>
         `).join('')}
       </div>
-    </div>
-  `;
-  form.appendChild(choiceSec);
-
+    `;
+    sec.appendChild(qDiv);
+  });
+  form.appendChild(sec);
   // ========== PROGRESS ==========
   const progressText = document.getElementById('progressText');
   const submitBtn = document.getElementById('submitBtn');
@@ -580,12 +529,11 @@
     for (let i = 1; i <= 15; i++) {
       answers[i] = parseInt(document.querySelector(`input[name="q${i}"]:checked`).value, 10);
     }
-    const pref = document.querySelector('input[name="pref"]:checked');
     try {
       const r = await fetch('/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers, pref: pref ? pref.value : null })
+        body: JSON.stringify({ answers })
       });
       if (!r.ok) throw new Error('submit failed');
       const data = await r.json();
