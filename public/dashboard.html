@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>실시간 집계 · 한국 조직문화 인식 조사</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --ink: #1a1a1a;
+    --ink-soft: #4a4a4a;
+    --ink-mute: #8a8a85;
+    --line: #d9d6cd;
+    --line-soft: #e8e5dd;
+    --paper: #fdfcf8;
+    --accent: oklch(0.55 0.15 35);
+    --warn: oklch(0.60 0.15 70);
+    --good: oklch(0.55 0.10 160);
+    --live: oklch(0.60 0.18 25);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: #000;
+    color: var(--ink);
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0; }
+
+  /* 16:9 stage that scales to viewport */
+  .stage-wrap {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+  }
+  .stage {
+    width: 1920px;
+    height: 1080px;
+    flex: 0 0 auto;
+    background: var(--bg);
+    position: relative;
+    transform-origin: center center;
+    overflow: hidden;
+  }
+
+  /* ===== Header band ===== */
+  .header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: flex-end;
+    padding: 48px 64px 28px;
+    border-bottom: 1px solid var(--line);
+  }
+  .h-left .h-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-mute);
+    margin-bottom: 14px;
+  }
+  .h-left .title {
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+  .h-left .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--ink-mute);
+    margin-top: 8px;
+    letter-spacing: 0.02em;
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--live);
+    box-shadow: 0 0 0 0 var(--live);
+    animation: pulse 1.6s ease-out infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 oklch(0.60 0.18 25 / 0.5); }
+    70% { box-shadow: 0 0 0 12px oklch(0.60 0.18 25 / 0); }
+    100% { box-shadow: 0 0 0 0 oklch(0.60 0.18 25 / 0); }
+  }
+  .live-tag { color: var(--live); font-weight: 500; }
+
+  .h-right {
+    text-align: right;
+  }
+  .count-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-mute);
+    margin-bottom: 4px;
+  }
+  .count-big {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 96px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+  }
+  .count-overall {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: var(--ink-mute);
+    margin-top: 6px;
+    letter-spacing: 0.02em;
+  }
+  .count-overall b {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* ===== Body grid ===== */
+  .body {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 48px;
+    padding: 36px 64px 0;
+    height: calc(1080px - 220px);
+  }
+
+  .panel-label {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  .panel-label .pl-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+  }
+  .panel-label .pl-name {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .panel-label .pl-hint {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  /* ===== Left: categories ===== */
+  .cats {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .cat-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 18px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+  .cat-row.top {
+    border-color: var(--ink);
+    background: #fff;
+  }
+  .cat-letter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ink);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0;
+  }
+  .cat-main {
+    min-width: 0;
+  }
+  .cat-name-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .cat-name {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .cat-items {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.02em;
+  }
+  .cat-bar {
+    height: 8px;
+    background: var(--line-soft);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .cat-bar-fill {
+    height: 100%;
+    background: var(--ink);
+    border-radius: 4px;
+    width: 0;
+    transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .cat-bar-fill.lvl-low { background: oklch(0.65 0.10 160); }
+  .cat-bar-fill.lvl-mid { background: oklch(0.60 0.10 70); }
+  .cat-bar-fill.lvl-high { background: oklch(0.55 0.15 35); }
+  .cat-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    min-width: 64px;
+    text-align: right;
+  }
+  .cat-score .of {
+    font-size: 12px;
+    color: var(--ink-mute);
+    font-weight: 400;
+  }
+
+  /* ===== Right column ===== */
+  .right-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .pref-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pref-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 16px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .pref-row.top {
+    border-color: var(--ink);
+  }
+  .pref-row::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--line-soft);
+    width: 0%;
+    transition: width 0.6s ease;
+    z-index: 0;
+  }
+  .pref-row.top::before {
+    background: oklch(0.94 0.04 35);
+  }
+  .pref-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    position: relative;
+    z-index: 1;
+    letter-spacing: -0.01em;
+  }
+  .pref-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+  }
+  .pref-count .pct {
+    color: var(--ink-mute);
+    font-weight: 400;
+    margin-left: 6px;
+    font-size: 12px;
+  }
+
+  /* Spotlight */
+  .spotlight {
+    margin-top: auto;
+    padding: 22px 24px;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 6px;
+  }
+  .sp-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: oklch(0.94 0.04 45 / 0.6);
+    margin-bottom: 10px;
+  }
+  .sp-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .sp-desc {
+    font-size: 13px;
+    color: oklch(0.94 0.04 45 / 0.75);
+    line-height: 1.55;
+  }
+
+  /* ===== Footer ===== */
+  .footer {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 18px 64px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+    background: var(--bg);
+  }
+  .footer .left { display: flex; align-items: center; gap: 16px; }
+  .footer .url {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .footer kbd {
+    font-family: inherit;
+    font-size: 10px;
+    padding: 2px 6px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--paper);
+    color: var(--ink-soft);
+  }
+
+  /* Empty state */
+  .empty-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .empty-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .empty-overlay .em-title {
+    font-size: 64px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .empty-overlay .em-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    color: var(--ink-mute);
+    text-align: center;
+    letter-spacing: 0.04em;
+    margin-bottom: 48px;
+  }
+  .em-url-box {
+    padding: 24px 40px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    text-align: center;
+  }
+  .em-url-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-mute);
+    margin-bottom: 10px;
+  }
+  .em-url {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: 0;
+  }
+  .em-waiting {
+    margin-top: 56px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--ink-mute);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Burst animation on new response */
+  .count-burst {
+    animation: burst 0.5s ease;
+  }
+  @keyframes burst {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.08); color: var(--accent); }
+    100% { transform: scale(1); }
+  }
+
+  /* Admin floating button */
+  .admin-fab {
+    position: absolute;
+    bottom: 18px;
+    right: 64px;
+    background: transparent;
+    border: none;
+    color: var(--ink-mute);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+  }
+  .admin-fab:hover { opacity: 1; color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="stage-wrap">
+  <div class="stage" id="stage" data-screen-label="Live Dashboard">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="h-left">
+        <div class="h-meta">
+          <span class="live-dot"></span>
+          <span class="live-tag">LIVE</span>
+          <span>·</span>
+          <span id="connStatus">실시간 집계</span>
+        </div>
+        <h1 class="title">한국 조직문화 인식 조사</h1>
+        <p class="subtitle">Korean Organizational Culture · Real-time Aggregate</p>
+      </div>
+      <div class="h-right">
+        <div class="count-label">응답 수</div>
+        <div class="count-big" id="countBig">0</div>
+        <div class="count-overall">전체 평균 <b id="overallScore">—</b> / 5.0</div>
+      </div>
+    </header>
+
+    <!-- Body -->
+    <div class="body">
+      <!-- Left: Categories -->
+      <section>
+        <div class="panel-label">
+          <span class="pl-num">/01</span>
+          <span class="pl-name">카테고리별 인식 점수</span>
+          <span class="pl-hint">7 CATEGORIES · 1.0 — 5.0</span>
+        </div>
+        <div class="cats" id="catsList"></div>
+      </section>
+
+      <!-- Right: Pref + Spotlight -->
+      <section style="display: flex; flex-direction: column;">
+        <div class="panel-label">
+          <span class="pl-num">/02</span>
+          <span class="pl-name">가장 대표적이라고 본 특징</span>
+          <span class="pl-hint">SELECT ONE</span>
+        </div>
+        <div class="pref-list" id="prefList"></div>
+
+        <div class="spotlight" id="spotlight" style="display: none;">
+          <div class="sp-label">가장 강하게 인식된 영역</div>
+          <div class="sp-title" id="spTitle">—</div>
+          <div class="sp-desc" id="spDesc"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="left">
+        <span>SURVEY</span>
+        <span class="url" id="surveyUrl">/</span>
+      </div>
+      <div>
+        <kbd>R</kbd> 새로고침 · <kbd>F</kbd> 전체화면 · <kbd>Q</kbd> QR 페이지
+      </div>
+    </footer>
+
+    <button class="admin-fab" id="adminFab" title="응답 초기화 (관리자)">⌥ RESET</button>
+
+    <!-- Empty state -->
+    <div class="empty-overlay" id="emptyOverlay">
+      <div class="em-title">응답을 기다리는 중</div>
+      <div class="em-sub">참가자가 QR 코드로 설문에 응답하면 여기에 실시간으로 집계됩니다.</div>
+      <div class="em-url-box">
+        <div class="em-url-label">설문 접속 주소</div>
+        <div class="em-url" id="emUrl">—</div>
+      </div>
+      <div class="em-waiting">
+        <span class="live-dot"></span>
+        <span>대기 중…</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ========== CATEGORIES ==========
+  const CATEGORIES = {
+    A: { name: '위계성',                   items: [1,2,3], desc: '직급·승인 체계 등 위계적 의사결정이 강하게 작동한다고 인식.' },
+    B: { name: '관계주의',                 items: [4,5],   desc: '비공식 네트워크와 인간관계가 업무에 미치는 영향이 크다고 인식.' },
+    C: { name: '눈치 / 조화 중심성',       items: [6,7],   desc: '분위기와 집단 조화를 개인 의견보다 우선시한다고 인식.' },
+    D: { name: '실행력 / 몰입',            items: [8,9,10],desc: '빠른 실행과 강한 책임감·몰입을 한국 조직의 강점으로 인식.' },
+    E: { name: '연공 / 성실성 규범',       items: [11,12], desc: '연차·근속·바쁜 모습을 인정 기준으로 받아들이는 정도.' },
+    F: { name: '수평문화의 형식-실질 괴리',items: [13,14], desc: '겉으로는 수평적이지만 실제 결정·평가는 위계적이라고 인식.' },
+    G: { name: '변화 저항성',              items: [15],    desc: '새로운 제도가 결국 익숙한 방식으로 회귀한다고 인식.' }
+  };
+  const PREF_OPTIONS = ['빠른 실행력','위계적 질서','관계 중심 협업','눈치와 분위기','강한 몰입과 책임감','수평을 말하지만 실제는 위계적임'];
+
+  // ========== SCALING ==========
+  function scaleStage() {
+    const wrap = document.querySelector('.stage-wrap');
+    const stage = document.getElementById('stage');
+    const sx = wrap.clientWidth / 1920;
+    const sy = wrap.clientHeight / 1080;
+    const s = Math.min(sx, sy);
+    stage.style.transform = `scale(${s})`;
+  }
+  window.addEventListener('resize', scaleStage);
+  scaleStage();
+
+  // ========== URLS ==========
+  const origin = location.origin;
+  const surveyUrl = origin.replace(/^https?:\/\//, '') + '/';
+  document.getElementById('surveyUrl').textContent = surveyUrl;
+  document.getElementById('emUrl').textContent = surveyUrl;
+
+  // ========== RENDER ==========
+  let lastCount = 0;
+
+  function levelClass(score) {
+    if (score < 2.5) return 'lvl-low';
+    if (score < 3.5) return 'lvl-mid';
+    return 'lvl-high';
+  }
+
+  function aggregate(responses) {
+    const N = responses.length;
+    const sumQ = Array.from({ length: 16 }, () => 0);
+    const cntQ = Array.from({ length: 16 }, () => 0);
+    const prefCount = {};
+    PREF_OPTIONS.forEach(o => prefCount[o] = 0);
+
+    let totalSum = 0, totalCount = 0;
+    responses.forEach(r => {
+      for (let i = 1; i <= 15; i++) {
+        const v = r.answers[i];
+        if (typeof v === 'number') {
+          sumQ[i] += v;
+          cntQ[i] += 1;
+          totalSum += v;
+          totalCount += 1;
+        }
+      }
+      if (r.pref && prefCount[r.pref] !== undefined) prefCount[r.pref]++;
+    });
+
+    const catScores = {};
+    Object.entries(CATEGORIES).forEach(([k, def]) => {
+      let s = 0, c = 0;
+      def.items.forEach(i => { s += sumQ[i]; c += cntQ[i]; });
+      catScores[k] = c > 0 ? s / c : 0;
+    });
+
+    return {
+      N,
+      overall: totalCount > 0 ? totalSum / totalCount : 0,
+      catScores,
+      prefCount
+    };
+  }
+
+  function render(responses) {
+    const empty = document.getElementById('emptyOverlay');
+    if (responses.length === 0) {
+      empty.classList.add('show');
+      document.getElementById('countBig').textContent = '0';
+      document.getElementById('overallScore').textContent = '—';
+      lastCount = 0;
+      return;
+    }
+    empty.classList.remove('show');
+
+    const agg = aggregate(responses);
+
+    // Count
+    const cb = document.getElementById('countBig');
+    cb.textContent = String(agg.N);
+    if (agg.N > lastCount) {
+      cb.classList.remove('count-burst');
+      void cb.offsetWidth;
+      cb.classList.add('count-burst');
+    }
+    lastCount = agg.N;
+
+    // Overall
+    document.getElementById('overallScore').textContent = agg.overall.toFixed(2);
+
+    // Categories: sort by score desc
+    const sortedCats = Object.entries(agg.catScores).sort((a,b) => b[1] - a[1]);
+    const catsList = document.getElementById('catsList');
+    catsList.innerHTML = '';
+    sortedCats.forEach(([key, score], idx) => {
+      const def = CATEGORIES[key];
+      const pct = (score / 5) * 100;
+      const row = document.createElement('div');
+      row.className = 'cat-row' + (idx === 0 ? ' top' : '');
+      row.innerHTML = `
+        <span class="cat-letter">${key}</span>
+        <div class="cat-main">
+          <div class="cat-name-row">
+            <span class="cat-name">${def.name}</span>
+            <span class="cat-items">Q${def.items.map(i=>String(i).padStart(2,'0')).join(' · Q')}</span>
+          </div>
+          <div class="cat-bar">
+            <div class="cat-bar-fill ${levelClass(score)}" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="cat-score">${score.toFixed(2)}<span class="of"> /5</span></div>
+      `;
+      catsList.appendChild(row);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          row.querySelector('.cat-bar-fill').style.width = pct + '%';
+        }, 50 + idx * 40);
+      });
+    });
+
+    // Pref distribution
+    const prefList = document.getElementById('prefList');
+    const totalPref = Object.values(agg.prefCount).reduce((a,b)=>a+b, 0);
+    const sortedPref = Object.entries(agg.prefCount).sort((a,b) => b[1] - a[1]);
+    const maxPref = Math.max(1, sortedPref[0][1]);
+    prefList.innerHTML = '';
+    sortedPref.forEach(([opt, n], idx) => {
+      const pct = totalPref > 0 ? Math.round((n / totalPref) * 100) : 0;
+      const fillPct = maxPref > 0 ? (n / maxPref) * 100 : 0;
+      const row = document.createElement('div');
+      row.className = 'pref-row' + (idx === 0 && n > 0 ? ' top' : '');
+      row.innerHTML = `
+        <span class="pref-text">${opt}</span>
+        <span class="pref-count">${n}<span class="pct">${pct}%</span></span>
+      `;
+      prefList.appendChild(row);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          row.style.setProperty('--fill', fillPct + '%');
+          row.querySelector('.pref-text').parentElement.style.setProperty('background-size', '100%');
+          // Use ::before manipulation via CSS variable trick
+          const before = document.createElement('style');
+          // Simpler: directly set width via pseudo
+        }, 80);
+      });
+      // Direct: set the ::before width via inline style on a custom attribute
+      const before = row;
+      // Use CSS variable
+      row.style.setProperty('--pct', fillPct + '%');
+    });
+
+    // Spotlight (top category)
+    const [topKey, topScore] = sortedCats[0];
+    const sp = document.getElementById('spotlight');
+    sp.style.display = 'block';
+    document.getElementById('spTitle').textContent = `${topKey}. ${CATEGORIES[topKey].name} · ${topScore.toFixed(2)}점`;
+    document.getElementById('spDesc').textContent = CATEGORIES[topKey].desc;
+  }
+
+  // Inject CSS to use --pct for ::before width
+  const styleTag = document.createElement('style');
+  styleTag.textContent = `.pref-row::before { width: var(--pct, 0%); }`;
+  document.head.appendChild(styleTag);
+
+  // ========== DATA ==========
+  async function fetchAndRender() {
+    try {
+      const r = await fetch('/api/results');
+      if (!r.ok) throw new Error('fetch failed');
+      const data = await r.json();
+      render(data.responses || []);
+    } catch (e) {
+      console.error(e);
+      render([]); // fall through to empty state so the screen isn't blank
+    }
+  }
+
+  // ========== SSE ==========
+  let es;
+  function connectSSE() {
+    es = new EventSource('/api/stream');
+    es.addEventListener('hello', () => {
+      document.getElementById('connStatus').textContent = '실시간 집계';
+    });
+    es.addEventListener('response', () => fetchAndRender());
+    es.addEventListener('reset', () => fetchAndRender());
+    es.onerror = () => {
+      document.getElementById('connStatus').textContent = '재접속 중…';
+    };
+    es.onopen = () => {
+      document.getElementById('connStatus').textContent = '실시간 집계';
+    };
+  }
+  connectSSE();
+  fetchAndRender();
+  // Fallback poll every 10s in case SSE dies silently
+  setInterval(fetchAndRender, 10000);
+
+  // ========== KEYBOARD ==========
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === 'r' || e.key === 'R') fetchAndRender();
+    if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    if (e.key === 'q' || e.key === 'Q') window.location.href = '/qr';
+  });
+
+  // ========== ADMIN RESET ==========
+  document.getElementById('adminFab').addEventListener('click', async () => {
+    const token = prompt('관리자 토큰을 입력하세요 (응답을 초기화합니다)');
+    if (!token) return;
+    if (!confirm('정말로 모든 응답을 초기화하시겠습니까? (백업 파일이 자동 생성됩니다)')) return;
+    try {
+      const r = await fetch('/api/reset', {
+        method: 'POST',
+        headers: { 'x-admin-token': token }
+      });
+      if (!r.ok) throw new Error();
+      alert('초기화되었습니다.');
+      fetchAndRender();
+    } catch (e) {
+      alert('실패했습니다. 토큰을 확인해 주세요.');
+    }
+  });
+</script>
+
+</body>
+</html>

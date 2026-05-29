@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#f6f5f1" />
+<title>한국 조직문화 인식 조사</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --ink: #1a1a1a;
+    --ink-soft: #4a4a4a;
+    --ink-mute: #8a8a85;
+    --line: #d9d6cd;
+    --line-soft: #e8e5dd;
+    --paper: #fdfcf8;
+    --accent: oklch(0.55 0.13 35);
+    --good: oklch(0.55 0.10 160);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+    overflow-x: hidden;
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0; }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 24px 120px;
+  }
+  @media (max-width: 600px) {
+    .page { padding: 24px 18px 100px; }
+  }
+
+  /* Header */
+  .doc-header {
+    border-top: 2px solid var(--ink);
+    padding-top: 22px;
+    margin-bottom: 32px;
+  }
+  .doc-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mute);
+    margin-bottom: 14px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .doc-title {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    margin-bottom: 8px;
+  }
+  .doc-subtitle {
+    font-size: 13px;
+    color: var(--ink-mute);
+    font-weight: 400;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+  }
+
+  /* Intro */
+  .intro {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 20px 22px;
+    margin-bottom: 28px;
+  }
+  .intro h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-mute);
+    font-weight: 500;
+    margin-bottom: 10px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .intro p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.75;
+  }
+  .intro p + p { margin-top: 6px; }
+
+  /* Scale legend */
+  .scale-legend {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 40px;
+    position: sticky;
+    top: 8px;
+    z-index: 10;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+  }
+  .scale-legend > div {
+    background: var(--paper);
+    padding: 10px 4px;
+    text-align: center;
+  }
+  .scale-legend .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    display: block;
+    margin-bottom: 2px;
+  }
+  .scale-legend .lbl {
+    font-size: 9px;
+    color: var(--ink-mute);
+    line-height: 1.3;
+  }
+
+  /* Sections */
+  .section { margin-bottom: 36px; }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+  .section-title {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+  .section-tag {
+    margin-left: auto;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mute);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Question */
+  .q {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .q:last-child { border-bottom: none; padding-bottom: 4px; }
+  .q.unanswered.highlighted {
+    background: oklch(0.96 0.04 35 / 0.6);
+    margin: 0 -10px;
+    padding: 14px 10px;
+    border-radius: 4px;
+    animation: pulse 0.6s ease;
+  }
+  @keyframes pulse {
+    0%, 100% { background: oklch(0.96 0.04 35 / 0.6); }
+    50% { background: oklch(0.92 0.07 35 / 0.8); }
+  }
+  .q-text {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .q-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-mute);
+    flex-shrink: 0;
+    padding-top: 2px;
+    min-width: 22px;
+  }
+
+  /* Likert */
+  .likert {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-left: 32px;
+  }
+  @media (max-width: 600px) {
+    .likert { margin-left: 0; gap: 4px; }
+  }
+  .likert label {
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 4px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--paper);
+    transition: all 0.15s ease;
+    user-select: none;
+    min-height: 56px;
+    justify-content: center;
+  }
+  .likert label:active { transform: scale(0.96); }
+  .likert input { position: absolute; opacity: 0; pointer-events: none; }
+  .likert .v {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .likert .t {
+    font-size: 9px;
+    color: var(--ink-mute);
+    text-align: center;
+    line-height: 1.2;
+  }
+  .likert label:has(input:checked) {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .likert label:has(input:checked) .v { color: #fff; }
+  .likert label:has(input:checked) .t { color: rgba(255,255,255,0.7); }
+
+  /* Choice */
+  .choice-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-left: 32px;
+  }
+  @media (max-width: 600px) { .choice-group { margin-left: 0; } }
+  .choice-group label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--paper);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s ease;
+  }
+  .choice-group label:active { transform: scale(0.99); }
+  .choice-group input { position: absolute; opacity: 0; pointer-events: none; }
+  .choice-group label::before {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink-mute);
+    flex-shrink: 0;
+  }
+  .choice-group label:has(input:checked) {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .choice-group label:has(input:checked)::before {
+    border-color: #fff;
+    background: radial-gradient(circle, #fff 0%, #fff 40%, var(--ink) 50%);
+  }
+
+  /* Submit */
+  .submit-row {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, var(--bg) 0%, var(--bg) 70%, transparent 100%);
+    padding: 20px 24px 24px;
+    z-index: 20;
+  }
+  .submit-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .progress-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+  }
+  .progress-text.complete { color: var(--good); }
+  .btn {
+    padding: 14px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    letter-spacing: 0.02em;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    background: var(--ink);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn:hover { background: #000; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled {
+    background: var(--line);
+    border-color: var(--line);
+    color: var(--ink-mute);
+    cursor: not-allowed;
+  }
+
+  /* Thank-you view */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .thanks {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+  }
+  .thanks-card {
+    max-width: 480px;
+    text-align: center;
+  }
+  .thanks-mark {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 28px;
+    font-size: 24px;
+  }
+  .thanks-title {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    margin-bottom: 12px;
+  }
+  .thanks-body {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+  .thanks-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+    padding: 12px 20px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    display: inline-block;
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== FORM ========== -->
+<div class="view active" id="formView">
+  <div class="page">
+    <header class="doc-header">
+      <div class="doc-meta">
+        <span>SURVEY · 2026</span>
+        <span id="liveCount">— 응답</span>
+      </div>
+      <h1 class="doc-title">한국 조직문화 인식 조사</h1>
+      <p class="doc-subtitle">Korean Org Culture Survey</p>
+    </header>
+
+    <section class="intro">
+      <h3>설문 안내문</h3>
+      <p>다음 문항은 특정 회사 하나가 아니라, 내가 일반적으로 인식하는 <strong>한국 조직문화 전반의 특징</strong>에 대한 질문입니다.</p>
+      <p>정답은 없으며, 본인의 경험과 인식을 기준으로 응답해 주세요.</p>
+    </section>
+
+    <div class="scale-legend">
+      <div><span class="num">1</span><span class="lbl">전혀<br>그렇지 않다</span></div>
+      <div><span class="num">2</span><span class="lbl">그렇지<br>않은 편</span></div>
+      <div><span class="num">3</span><span class="lbl">보통</span></div>
+      <div><span class="num">4</span><span class="lbl">그런 편</span></div>
+      <div><span class="num">5</span><span class="lbl">매우<br>그렇다</span></div>
+    </div>
+
+    <form id="surveyForm"></form>
+  </div>
+
+  <div class="submit-row">
+    <div class="submit-inner">
+      <span class="progress-text" id="progressText">0 / 15</span>
+      <button type="button" class="btn" id="submitBtn">제출하기 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== THANKS ========== -->
+<div class="view" id="thanksView">
+  <div class="thanks">
+    <div class="thanks-card">
+      <div class="thanks-mark">✓</div>
+      <h1 class="thanks-title">응답이 제출되었습니다</h1>
+      <p class="thanks-body">참여해 주셔서 감사합니다.<br>강의실 화면에서 전체 결과가 실시간으로 집계됩니다.</p>
+      <div class="thanks-meta" id="thanksMeta">RESPONSE #—</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ========== DATA ==========
+  const SECTIONS = [
+    { num:'01', title:'위계와 발언 구조', cat:'A', items:[
+      '공식적으로는 자유롭게 말하라고 하지만, 실제로는 직급이 높은 사람의 의견이 더 크게 작동하는 편이다.',
+      '회의에서 다른 의견이 있어도 분위기를 고려해 직접적으로 반대하기 어려운 편이다.',
+      '의사결정 과정에서 보고와 승인 체계가 중요한 편이다.'
+    ]},
+    { num:'02', title:'관계와 비공식 네트워크', cat:'B', items:[
+      '공식 시스템보다 인간관계나 비공식 네트워크가 실제 업무에 더 큰 영향을 미치는 경우가 있다.',
+      '동료와의 관계를 잘 유지하는 것이 협업 성과에 중요한 요소로 작용하는 편이다.'
+    ]},
+    { num:'03', title:'눈치와 집단 조화', cat:'C', items:[
+      '규정에 없는 일이라도 분위기상 알아서 맞춰야 하는 경우가 많은 편이다.',
+      '개인의 의견보다 팀의 조화와 분위기를 우선하는 경향이 있다.'
+    ]},
+    { num:'04', title:'실행력과 몰입', cat:'D', items:[
+      '방향이 정해지면 빠르게 움직이고 실행하는 힘이 강한 편이다.',
+      '위기 상황이 오면 구성원들이 빠르게 결집해 몰입하는 편이다.',
+      '맡은 일에 대해 강한 책임감을 느끼고 끝까지 해내려는 태도가 강한 편이다.'
+    ]},
+    { num:'05', title:'성실함과 보상 기준', cat:'E', items:[
+      '오래 근무한 사람이나 연차가 높은 사람이 더 인정받는 경향이 있다.',
+      '늦게까지 남아 있거나 바쁘게 보이는 것이 성실함처럼 받아들여지는 경우가 있다.'
+    ]},
+    { num:'06', title:'수평문화의 형식과 실제', cat:'FG', items:[
+      '수평적 문화를 표방하더라도 실제 의사결정은 여전히 위계적으로 이루어지는 경우가 많다.',
+      '호칭이나 형식은 수평적으로 바뀌어도, 평가와 보상 방식은 크게 달라지지 않는 경우가 많다.',
+      '새로운 문화나 제도를 도입해도 결국 익숙한 방식으로 다시 돌아가려는 힘이 강한 편이다.'
+    ]}
+  ];
+  const PREF_OPTIONS = ['빠른 실행력','위계적 질서','관계 중심 협업','눈치와 분위기','강한 몰입과 책임감','수평을 말하지만 실제는 위계적임'];
+
+  // ========== BUILD ==========
+  const form = document.getElementById('surveyForm');
+  let qIdx = 0;
+  SECTIONS.forEach(section => {
+    const sec = document.createElement('section');
+    sec.className = 'section';
+    const tag = section.cat === 'FG' ? 'CATEGORY · F / G' : `CATEGORY · ${section.cat}`;
+    sec.innerHTML = `
+      <div class="section-header">
+        <span class="section-num">${section.num}</span>
+        <span class="section-title">${section.title}</span>
+        <span class="section-tag">${tag}</span>
+      </div>
+    `;
+    section.items.forEach(text => {
+      qIdx++;
+      const qDiv = document.createElement('div');
+      qDiv.className = 'q unanswered';
+      qDiv.dataset.qnum = qIdx;
+      qDiv.innerHTML = `
+        <div class="q-text">
+          <span class="q-num">${String(qIdx).padStart(2,'0')}</span>
+          <span>${text}</span>
+        </div>
+        <div class="likert">
+          ${[1,2,3,4,5].map(v => `
+            <label>
+              <input type="radio" name="q${qIdx}" value="${v}" />
+              <span class="v">${v}</span>
+              <span class="t">${['전혀<br>그렇지 않다','그렇지<br>않은 편','보통','그런 편','매우<br>그렇다'][v-1]}</span>
+            </label>
+          `).join('')}
+        </div>
+      `;
+      sec.appendChild(qDiv);
+    });
+    form.appendChild(sec);
+  });
+
+  // Pref
+  const choiceSec = document.createElement('section');
+  choiceSec.className = 'section';
+  choiceSec.innerHTML = `
+    <div class="section-header">
+      <span class="section-num">+</span>
+      <span class="section-title">대표적 조직문화 특징</span>
+      <span class="section-tag">OPTIONAL</span>
+    </div>
+    <div class="q">
+      <div class="q-text">
+        <span class="q-num">★</span>
+        <span>가장 대표적인 조직문화 특징은 무엇이라고 생각하십니까?</span>
+      </div>
+      <div class="choice-group">
+        ${PREF_OPTIONS.map(opt => `
+          <label>
+            <input type="radio" name="pref" value="${opt}" />
+            <span>${opt}</span>
+          </label>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  form.appendChild(choiceSec);
+
+  // ========== PROGRESS ==========
+  const progressText = document.getElementById('progressText');
+  const submitBtn = document.getElementById('submitBtn');
+
+  function getAnswered() {
+    let n = 0;
+    for (let i = 1; i <= 15; i++) {
+      if (document.querySelector(`input[name="q${i}"]:checked`)) n++;
+    }
+    return n;
+  }
+  function updateProgress() {
+    const n = getAnswered();
+    progressText.textContent = `${n} / 15`;
+    progressText.classList.toggle('complete', n === 15);
+    // mark answered questions
+    for (let i = 1; i <= 15; i++) {
+      const el = document.querySelector(`[data-qnum="${i}"]`);
+      if (!el) continue;
+      const answered = !!document.querySelector(`input[name="q${i}"]:checked`);
+      el.classList.toggle('unanswered', !answered);
+      if (answered) el.classList.remove('highlighted');
+    }
+  }
+  form.addEventListener('change', updateProgress);
+
+  // ========== SUBMIT ==========
+  let submitting = false;
+  submitBtn.addEventListener('click', async () => {
+    if (submitting) return;
+    const answered = getAnswered();
+    if (answered < 15) {
+      // highlight first unanswered
+      const firstUn = document.querySelector('.q.unanswered');
+      if (firstUn) {
+        firstUn.classList.add('highlighted');
+        firstUn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      progressText.style.color = 'var(--accent)';
+      setTimeout(() => progressText.style.color = '', 1500);
+      return;
+    }
+    submitting = true;
+    submitBtn.disabled = true;
+    submitBtn.textContent = '제출 중…';
+
+    const answers = {};
+    for (let i = 1; i <= 15; i++) {
+      answers[i] = parseInt(document.querySelector(`input[name="q${i}"]:checked`).value, 10);
+    }
+    const pref = document.querySelector('input[name="pref"]:checked');
+    try {
+      const r = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers, pref: pref ? pref.value : null })
+      });
+      if (!r.ok) throw new Error('submit failed');
+      const data = await r.json();
+      document.getElementById('thanksMeta').textContent = `RESPONSE #${String(data.count).padStart(3,'0')}`;
+      document.getElementById('formView').classList.remove('active');
+      document.getElementById('thanksView').classList.add('active');
+      window.scrollTo(0, 0);
+    } catch (e) {
+      alert('제출에 실패했습니다. 다시 시도해 주세요.');
+      submitting = false;
+      submitBtn.disabled = false;
+      submitBtn.textContent = '제출하기 →';
+    }
+  });
+
+  // ========== LIVE COUNT (just for vibe) ==========
+  async function fetchCount() {
+    try {
+      const r = await fetch('/api/results');
+      const data = await r.json();
+      document.getElementById('liveCount').textContent = `${data.responses.length} 응답`;
+    } catch (e) {}
+  }
+  fetchCount();
+
+  updateProgress();
+</script>
+
+</body>
+</html>

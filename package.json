@@ -1,0 +1,16 @@
+{
+  "name": "korean-org-culture-survey",
+  "version": "1.0.0",
+  "description": "한국 조직문화 인식 조사 - 설문 + 실시간 집계 대시보드",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
